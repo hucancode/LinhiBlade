@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+
+Content/Linhi
+Content/ParagonCountess
+Content/ParagonKwang
+Content/ParagonMinions
+Content/ParagonPhase
+Intermediate/
+Saved/
