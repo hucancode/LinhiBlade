@@ -10,7 +10,8 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FTargetReachedDelegate);
 
 /**
- * 
+ * Move near a location, target is a AI controlled character
+ * The task compeleted when target is reached or AI returned error
  */
 UCLASS()
 class LINHIBLADE_API UAP_Task_MoveNearLocation : public UAbilityTask
@@ -20,6 +21,7 @@ class LINHIBLADE_API UAP_Task_MoveNearLocation : public UAbilityTask
 public:
 	UPROPERTY(BlueprintAssignable)
 	FTargetReachedDelegate OnTargetLocationReached;
+	UPROPERTY(BlueprintAssignable)
 	FTargetReachedDelegate OnMovementCancelled;
 	TScriptDelegate<FWeakObjectPtr> OnMovementCompletedDelegate;
 	TScriptDelegate<FWeakObjectPtr> OnMovementCancelledDelegate;
@@ -27,10 +29,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ability|Tasks", meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE"))
 		static UAP_Task_MoveNearLocation* MoveNearLocation(UGameplayAbility* OwningAbility, FName TaskInstanceName, FVector Location, float Range);
 public:
+	UAP_Task_MoveNearLocation();
+	~UAP_Task_MoveNearLocation();
 	virtual void Activate() override;
 	virtual void OnDestroy(bool AbilityIsEnding) override;
 public:
-	//UFUNCTION(BlueprintInternalUseOnly, Category = "Ability|Tasks", meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE"))
+	UFUNCTION(BlueprintInternalUseOnly, Category = "Ability|Tasks", meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE"))
 	void OnMovementCompleted(FAIRequestID RequestID, EPathFollowingResult::Type Result);
 protected:
 	UPROPERTY()
