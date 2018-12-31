@@ -7,7 +7,7 @@
 #include "AP_TargetActor_GroundPoint.generated.h"
 
 /**
- * 
+ * point targeting, return a point on the ground that mouse is targeting to
  */
 UCLASS()
 class LINHIBLADE_API AAP_TargetActor_GroundPoint : public AGameplayAbilityTargetActor
@@ -16,12 +16,10 @@ class LINHIBLADE_API AAP_TargetActor_GroundPoint : public AGameplayAbilityTarget
 public:
 	/** Initialize and begin targeting logic  */
 	virtual void StartTargeting(UGameplayAbility* Ability) override;
-
-	virtual void Tick(float DeltaSeconds) override;
-
 	/** Outside code is saying 'stop and just give me what you have.' Returns true if the ability accepts this and can be forgotten. */
-	UFUNCTION()
-		virtual void ConfirmTargetingAndContinue() override;
-	
+	virtual void ConfirmTargetingAndContinue() override;
+	virtual void CancelTargeting() override;
+	virtual void Tick(float DeltaSeconds) override;
+protected:
 	FHitResult PerformTrace();
 };

@@ -28,6 +28,11 @@ void AAP_TargetActor_GroundPoint::ConfirmTargetingAndContinue()
 	}
 
 }
+void AAP_TargetActor_GroundPoint::CancelTargeting()
+{
+	Super::CancelTargeting();
+	GetWorld()->GetFirstPlayerController()->CurrentMouseCursor = GetWorld()->GetFirstPlayerController()->DefaultMouseCursor;
+}
 FHitResult AAP_TargetActor_GroundPoint::PerformTrace()
 {
 	UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_GroundPoint::PerformTrace()"));
