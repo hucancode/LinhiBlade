@@ -55,6 +55,10 @@ void UAP_Task_LookAtLocation::TickTask(float DeltaTime)
 		}
 		FRotator Source = GetAvatarActor()->GetActorRotation();
 		FRotator Delta = Destination - Source;
+		if (UKismetMathLibrary::Abs(Delta.Yaw) > 180.0f)
+		{
+			Delta.Yaw = 180.0f - Delta.Yaw;
+		}
 		float MicroTurn = TurnRate * DeltaTime;
 		if (UKismetMathLibrary::Abs(Delta.Yaw) < MicroTurn)
 		{
