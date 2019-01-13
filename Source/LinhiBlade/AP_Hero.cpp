@@ -56,6 +56,7 @@ void AAP_Hero::AddStartupGameplayAbilities()
 {
 	if (Role == ROLE_Authority && !bAbilitiesInitialized)
 	{
+		GameplayAbilityHandles.Empty();
 		// Grant abilities, but only on the server	
 		for (TSubclassOf<UGameplayAbility>& StartupAbility : GameplayAbilities)
 		{
@@ -105,4 +106,77 @@ void AAP_Hero::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetime
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	//DOREPLIFETIME(AAP_Hero, CharacterLevel);
+}
+
+void AAP_Hero::HandleDamage(float DamageAmount, const FHitResult& HitInfo, const struct FGameplayTagContainer& DamageTags, AAP_Hero* InstigatorPawn, AActor* DamageCauser)
+{
+	OnDamaged(DamageAmount, HitInfo, DamageTags, InstigatorPawn, DamageCauser);
+}
+
+void AAP_Hero::HandleHealthChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags)
+{
+	// We only call the BP callback if this is not the initial ability setup
+	if (bAbilitiesInitialized)
+	{
+		OnHealthChanged(DeltaValue, EventTags);
+	}
+}
+
+void AAP_Hero::HandleManaChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags)
+{
+	if (bAbilitiesInitialized)
+	{
+		OnManaChanged(DeltaValue, EventTags);
+	}
+}
+
+void AAP_Hero::HandleMoveSpeedChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags)
+{
+	// Update the character movement's walk speed
+	GetCharacterMovement()->MaxWalkSpeed = GetMoveSpeed();
+
+	if (bAbilitiesInitialized)
+	{
+		OnMoveSpeedChanged(DeltaValue, EventTags);
+	}
+}
+
+float AAP_Hero::GetHealth() const
+{
+	return AttributeSet->GetHealth();
+}
+
+float AAP_Hero::GetMaxHealth() const
+{
+	return AttributeSet->GetMaxHealth();
+}
+
+float AAP_Hero::GetMana() const
+{
+	return AttributeSet->GetMana();
+}
+
+float AAP_Hero::GetMaxMana() const
+{
+	return AttributeSet->GetMaxMana();
+}
+
+float AAP_Hero::GetMoveSpeed() const
+{
+	return AttributeSet->GetMoveSpeed();
+}
+
+int32 AAP_Hero::GetCharacterLevel() const
+{
+	return CharacterLevel;
+}
+
+bool AAP_Hero::SetCharacterLevel(int32 NewLevel)
+{
+	if (CharacterLevel != NewLevel && NewLevel > 0)
+	{
+		CharacterLevel = NewLevel;
+		return true;
+	}
+	return false;
 }
