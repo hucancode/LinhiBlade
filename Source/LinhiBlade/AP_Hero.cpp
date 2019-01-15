@@ -32,6 +32,7 @@ AAP_Hero::AAP_Hero()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
+	AttributeSet = CreateDefaultSubobject<UAP_AttributeSet>(TEXT("AttributeSet"));
 }
 
 // Called when the game starts or when spawned
@@ -79,8 +80,6 @@ void AAP_Hero::Tick(float DeltaTime)
 void AAP_Hero::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	AbilitySystem->BindAbilityActivationToInputComponent(PlayerInputComponent, 
-		FGameplayAbilityInputBinds("ConfirmInput", "CancelInput", "AbilityInput"));
 }
 
 void AAP_Hero::PossessedBy(AController * NewController)
@@ -106,6 +105,11 @@ void AAP_Hero::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetime
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	//DOREPLIFETIME(AAP_Hero, CharacterLevel);
+}
+
+UAbilitySystemComponent * AAP_Hero::GetAbilitySystemComponent() const
+{
+	return AbilitySystem;
 }
 
 void AAP_Hero::HandleDamage(float DamageAmount, const FHitResult& HitInfo, const struct FGameplayTagContainer& DamageTags, AAP_Hero* InstigatorPawn, AActor* DamageCauser)
