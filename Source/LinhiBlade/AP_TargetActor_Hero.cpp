@@ -38,6 +38,7 @@ void AAP_TargetActor_Hero::ConfirmTargetingAndContinue()
 		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("ConfirmTargetingAndContinue(), Hit nothing"));
+			HitResult.Actor = NULL;
 			Handle = StartLocation.MakeTargetDataHandleFromHitResult(OwningAbility, HitResult);
 		}
 
