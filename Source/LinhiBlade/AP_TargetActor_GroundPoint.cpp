@@ -12,7 +12,12 @@ void AAP_TargetActor_GroundPoint::StartTargeting(UGameplayAbility* Ability)
 	UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_GroundPoint::StartTargeting()"));
 	Super::StartTargeting(Ability);
 	GetWorld()->GetFirstPlayerController()->CurrentMouseCursor = EMouseCursor::Crosshairs;
-	// change cursor, init targetting effect
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.SetTickFunctionEnable(true);
+	PrimaryActorTick.TickGroup = TG_PostUpdateWork;
+	// workaround for an engine bug, turn the tick function off and on again
+	RegisterAllActorTickFunctions(false, false);
+	RegisterAllActorTickFunctions(true, false);
 }
 
 void AAP_TargetActor_GroundPoint::ConfirmTargetingAndContinue()
@@ -53,20 +58,15 @@ FHitResult AAP_TargetActor_GroundPoint::PerformTrace()
 void AAP_TargetActor_GroundPoint::Tick(float DeltaSeconds)
 {
 	UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_GroundPoint::Tick()"));
-	// very temp - do a mostly hardcoded trace from the source actor
-	if (SourceActor)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_GroundPoint::Tick() if true"));
-		FHitResult HitResult = PerformTrace();
-		FVector EndPoint = HitResult.Component.IsValid() ? HitResult.ImpactPoint : HitResult.TraceEnd;
+	FHitResult HitResult = PerformTrace();
+	FVector EndPoint = HitResult.Component.IsValid() ? HitResult.ImpactPoint : HitResult.TraceEnd;
 
 #if ENABLE_DRAW_DEBUG
-		if (bDebug)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_GroundPoint::Tick() DrawDebugSphere"));
-			DrawDebugSphere(GetWorld(), EndPoint, 16, 10, FColor::Green, false);
-		}
-#endif // ENABLE_DRAW_DEBUG
-		// update targeting effect here, draw a circle indicating the target location?
+	if (bDebug)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_GroundPoint::Tick() DrawDebugSphere"));
+		DrawDebugSphere(GetWorld(), EndPoint, 16, 10, FColor::Green, false);
 	}
+#endif // ENABLE_DRAW_DEBUG
+	// update targeting effect here, draw a circle indicating the target location?
 }
