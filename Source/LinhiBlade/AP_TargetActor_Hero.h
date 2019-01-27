@@ -8,7 +8,7 @@
 #include "AP_TargetActor_Hero.generated.h"
 
 /**
- * 
+ * point targeting, return hero on the ground that mouse is targeting to, null if no hero
  */
 UCLASS()
 class LINHIBLADE_API AAP_TargetActor_Hero : public AGameplayAbilityTargetActor
