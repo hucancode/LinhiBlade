@@ -9,6 +9,7 @@
 
 /**
  * point targeting, return hero on the ground that mouse is targeting to, null if no hero
+ * support user confirmed targeting
  */
 UCLASS()
 class LINHIBLADE_API AAP_TargetActor_Hero : public AGameplayAbilityTargetActor
@@ -22,6 +23,8 @@ public:
 	virtual void ConfirmTargetingAndContinue() override;
 	virtual void CancelTargeting() override;
 	virtual void Tick(float DeltaTime) override;
+	virtual bool ShouldProduceTargetData() const override;
+protected:
 	void TurnOffTargetHighlight();
 protected:
 	FHitResult PerformTrace();

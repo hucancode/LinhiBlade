@@ -16,9 +16,7 @@ class LINHIBLADE_API AAP_TargetActor_BoxAOE : public AGameplayAbilityTargetActor
 public:
 	virtual void BeginPlay() override;
 	virtual void StartTargeting(UGameplayAbility* Ability) override;
-	virtual void ConfirmTargetingAndContinue() override;
-	virtual void CancelTargeting() override;
-	virtual void Tick(float DeltaSeconds) override;
+	virtual bool ShouldProduceTargetData() const override;
 
 	/** Radius of target acquisition around the ability's start location. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (ExposeOnSpawn = true), Category = AOE)

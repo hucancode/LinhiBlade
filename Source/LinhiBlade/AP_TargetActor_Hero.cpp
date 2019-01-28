@@ -64,24 +64,22 @@ void AAP_TargetActor_Hero::CancelTargeting()
 }
 FHitResult AAP_TargetActor_Hero::PerformTrace()
 {
-	UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_Hero::PerformTrace()"));
+	//UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_Hero::PerformTrace()"));
 	// make hit result from cursor
 	FHitResult HitResult;
 	FVector MouseLoc;
 	FVector MouseRot;
-	UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_Hero::PerformTrace() GetFirstPlayerController"));
 	GetWorld()->GetFirstPlayerController()->DeprojectMousePositionToWorld(MouseLoc, MouseRot);;
 	const FVector StartTrace = MouseLoc;
 	const FVector ShootDir = MouseRot;
 	const FVector EndTrace = StartTrace + ShootDir * 2000.0f;
-	UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_Hero::PerformTrace() LineTraceSingleByChannel"));
 	GetWorld()->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, ECollisionChannel::ECC_GameTraceChannel1);
 	return HitResult;
 }
 void AAP_TargetActor_Hero::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_Hero::Tick()"));
+	//UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_Hero::Tick()"));
 	if (IsConfirmTargetingAllowed())
 	{
 		FHitResult HitResult = PerformTrace();
@@ -90,7 +88,7 @@ void AAP_TargetActor_Hero::Tick(float DeltaTime)
 #if ENABLE_DRAW_DEBUG
 		if (bDebug)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_Hero::Tick() DrawDebugSphere"));
+			//UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_Hero::Tick() DrawDebugSphere"));
 			DrawDebugSphere(GetWorld(), EndPoint, 16, 10, FColor::Green, false);
 		}
 #endif // ENABLE_DRAW_DEBUG
@@ -99,29 +97,35 @@ void AAP_TargetActor_Hero::Tick(float DeltaTime)
 		AAP_Hero* Hero = Cast<AAP_Hero>(HitActor);
 		if (Hero)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("ConfirmTargetingAndContinue(), Nice, hit a hero"));
+			//UE_LOG(LogTemp, Warning, TEXT("ConfirmTargetingAndContinue(), Nice, hit a hero"));
 			if (LastHeroHighlighted && LastHeroHighlighted != Hero)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("ConfirmTargetingAndContinue(), turn off highlight for last hero"));
+				//UE_LOG(LogTemp, Warning, TEXT("ConfirmTargetingAndContinue(), turn off highlight for last hero"));
 				LastHeroHighlighted->GetMesh()->SetRenderCustomDepth(false);
 				LastHeroHighlighted = Hero;
-				UE_LOG(LogTemp, Warning, TEXT("ConfirmTargetingAndContinue(), turn on highlight for current hero"));
+				//UE_LOG(LogTemp, Warning, TEXT("ConfirmTargetingAndContinue(), turn on highlight for current hero"));
 				Hero->GetMesh()->SetRenderCustomDepth(true);
 			}
 			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT("ConfirmTargetingAndContinue(), turn on highlight for newly found hero"));
+				//UE_LOG(LogTemp, Warning, TEXT("ConfirmTargetingAndContinue(), turn on highlight for newly found hero"));
 				Hero->GetMesh()->SetRenderCustomDepth(true);
 				LastHeroHighlighted = Hero;
 			}
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("ConfirmTargetingAndContinue(), Hit nothing"));
+			//UE_LOG(LogTemp, Warning, TEXT("ConfirmTargetingAndContinue(), Hit nothing"));
 			TurnOffTargetHighlight();
 		}
 		// update targeting effect here, draw a circle indicating the target location?
 	}
+}
+
+bool AAP_TargetActor_Hero::ShouldProduceTargetData() const
+{
+	bool LocallyOwned = true;// TODO: make this true only for local player
+	return LocallyOwned || ShouldProduceTargetDataOnServer;
 }
 
 void AAP_TargetActor_Hero::TurnOffTargetHighlight()

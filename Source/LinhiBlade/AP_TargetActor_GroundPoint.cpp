@@ -40,33 +40,39 @@ void AAP_TargetActor_GroundPoint::CancelTargeting()
 }
 FHitResult AAP_TargetActor_GroundPoint::PerformTrace()
 {
-	UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_GroundPoint::PerformTrace()"));
+	//UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_GroundPoint::PerformTrace()"));
 	// make hit result from cursor
 	FHitResult HitResult;
 	FVector MouseLoc;
 	FVector MouseRot;
-	UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_GroundPoint::PerformTrace() GetFirstPlayerController"));
+	//UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_GroundPoint::PerformTrace() GetFirstPlayerController"));
 	GetWorld()->GetFirstPlayerController()->DeprojectMousePositionToWorld(MouseLoc, MouseRot);;
 	const FVector StartTrace = MouseLoc;
 	const FVector ShootDir = MouseRot;
 	const FVector EndTrace = StartTrace + ShootDir * 2000.0f;
-	UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_GroundPoint::PerformTrace() LineTraceSingleByChannel"));
+	//UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_GroundPoint::PerformTrace() LineTraceSingleByChannel"));
 	GetWorld()->LineTraceSingleByChannel(HitResult,
 		StartTrace, EndTrace, ECollisionChannel::ECC_Visibility);// not sure if ECC_Visibility or ECC_WorldStatic
 	return HitResult;
 }
 void AAP_TargetActor_GroundPoint::Tick(float DeltaSeconds)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_GroundPoint::Tick()"));
+	//UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_GroundPoint::Tick()"));
 	FHitResult HitResult = PerformTrace();
 	FVector EndPoint = HitResult.Component.IsValid() ? HitResult.ImpactPoint : HitResult.TraceEnd;
 
 #if ENABLE_DRAW_DEBUG
 	if (bDebug)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_GroundPoint::Tick() DrawDebugSphere"));
+		//UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_GroundPoint::Tick() DrawDebugSphere"));
 		DrawDebugSphere(GetWorld(), EndPoint, 16, 10, FColor::Green, false);
 	}
 #endif // ENABLE_DRAW_DEBUG
 	// update targeting effect here, draw a circle indicating the target location?
+}
+
+bool AAP_TargetActor_GroundPoint::ShouldProduceTargetData() const
+{
+	bool LocallyOwned = true;// TODO: make this true only for local player
+	return LocallyOwned || ShouldProduceTargetDataOnServer;
 }

@@ -8,6 +8,7 @@
 
 /**
  * point targeting, return a point on the ground that mouse is targeting to
+ * support user confirmed targeting
  */
 UCLASS()
 class LINHIBLADE_API AAP_TargetActor_GroundPoint : public AGameplayAbilityTargetActor
@@ -20,6 +21,7 @@ public:
 	virtual void ConfirmTargetingAndContinue() override;
 	virtual void CancelTargeting() override;
 	virtual void Tick(float DeltaSeconds) override;
+	virtual bool ShouldProduceTargetData() const override;
 protected:
 	FHitResult PerformTrace();
 };
