@@ -37,7 +37,12 @@ TArray<TWeakObjectPtr<AActor>> AAP_TargetActor_BoxAOE::PerformTrace()
 	TArray<TWeakObjectPtr<AActor>>	HitActors;
 	FCollisionShape Shape = FCollisionShape::MakeBox(Size);
 	GetWorld()->OverlapMultiByObjectType(Overlaps, Location, Rotation.Quaternion(), ObjectToScan, Shape, Params);
-	DrawDebugBox(GetWorld(), Location, Size, Rotation.Quaternion(), FColor::Green, false, 1.5f);
+#if ENABLE_DRAW_DEBUG
+	if (bDebug)
+	{
+		DrawDebugBox(GetWorld(), Location, Size, Rotation.Quaternion(), FColor::Green, false, 1.5f);
+	}
+#endif
 	for (int32 i = 0; i < Overlaps.Num(); ++i)
 	{
 		//Should this check to see if these pawns are in the AimTarget list?
