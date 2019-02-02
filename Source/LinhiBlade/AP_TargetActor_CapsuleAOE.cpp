@@ -25,7 +25,7 @@ bool AAP_TargetActor_CapsuleAOE::ShouldProduceTargetData() const
 TArray<TWeakObjectPtr<AActor>> AAP_TargetActor_CapsuleAOE::PerformTrace()
 {
 	FCollisionObjectQueryParams ObjectToScan = FCollisionObjectQueryParams(ECC_GameTraceChannel1);
-	FCollisionQueryParams Params(SCENE_QUERY_STAT(BoxTargetingOverlap), false);
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(CapsuleTargetingOverlap), false);
 	Params.bReturnPhysicalMaterial = false;
 	Params.bTraceAsyncScene = false;
 	TArray<FOverlapResult> Overlaps;

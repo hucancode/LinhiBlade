@@ -73,7 +73,11 @@ FHitResult AAP_TargetActor_Hero::PerformTrace()
 	const FVector StartTrace = MouseLoc;
 	const FVector ShootDir = MouseRot;
 	const FVector EndTrace = StartTrace + ShootDir * 2000.0f;
-	GetWorld()->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, ECollisionChannel::ECC_GameTraceChannel1);
+	
+	ECollisionChannel Channel(ECollisionChannel::ECC_GameTraceChannel2);
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(HeroTargetingOverlap), false);
+	//GetWorld()->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, Channel);
+	GetWorld()->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, Channel, Params);
 	return HitResult;
 }
 void AAP_TargetActor_Hero::Tick(float DeltaTime)
@@ -89,7 +93,14 @@ void AAP_TargetActor_Hero::Tick(float DeltaTime)
 		if (bDebug)
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_Hero::Tick() DrawDebugSphere"));
-			DrawDebugSphere(GetWorld(), EndPoint, 16, 10, FColor::Green, false);
+			if (HitResult.bBlockingHit)
+			{
+				DrawDebugSphere(GetWorld(), EndPoint, 16, 10, FColor::Green, false);
+			}
+			else
+			{
+				DrawDebugSphere(GetWorld(), EndPoint, 16, 10, FColor::Red, false);
+			}
 		}
 #endif // ENABLE_DRAW_DEBUG
 		TWeakObjectPtr<AActor> HitActor = HitResult.Actor;
