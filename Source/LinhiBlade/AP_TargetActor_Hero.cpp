@@ -108,25 +108,25 @@ void AAP_TargetActor_Hero::Tick(float DeltaTime)
 		AAP_Hero* Hero = Cast<AAP_Hero>(HitActor);
 		if (Hero)
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("ConfirmTargetingAndContinue(), Nice, hit a hero"));
+			//UE_LOG(LogTemp, Warning, TEXT("Tick(), Nice, hit a hero"));
 			if (LastHeroHighlighted && LastHeroHighlighted != Hero)
 			{
-				//UE_LOG(LogTemp, Warning, TEXT("ConfirmTargetingAndContinue(), turn off highlight for last hero"));
+				//UE_LOG(LogTemp, Warning, TEXT("Tick(), turn off highlight for last hero"));
 				LastHeroHighlighted->GetMesh()->SetRenderCustomDepth(false);
 				LastHeroHighlighted = Hero;
-				//UE_LOG(LogTemp, Warning, TEXT("ConfirmTargetingAndContinue(), turn on highlight for current hero"));
+				//UE_LOG(LogTemp, Warning, TEXT("Tick(), turn on highlight for current hero"));
 				Hero->GetMesh()->SetRenderCustomDepth(true);
 			}
 			else
 			{
-				//UE_LOG(LogTemp, Warning, TEXT("ConfirmTargetingAndContinue(), turn on highlight for newly found hero"));
+				//UE_LOG(LogTemp, Warning, TEXT("Tick(), turn on highlight for newly found hero"));
 				Hero->GetMesh()->SetRenderCustomDepth(true);
 				LastHeroHighlighted = Hero;
 			}
 		}
 		else
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("ConfirmTargetingAndContinue(), Hit nothing"));
+			//UE_LOG(LogTemp, Warning, TEXT("Tick(), Hit nothing"));
 			TurnOffTargetHighlight();
 		}
 		// update targeting effect here, draw a circle indicating the target location?
@@ -143,7 +143,7 @@ void AAP_TargetActor_Hero::TurnOffTargetHighlight()
 {
 	if (LastHeroHighlighted)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ConfirmTargetingAndContinue(), turn off highlight for last hero"));
+		UE_LOG(LogTemp, Warning, TEXT("TurnOffTargetHighlight(), turn off highlight for last hero"));
 		LastHeroHighlighted->GetMesh()->SetRenderCustomDepth(false);
 		LastHeroHighlighted = nullptr;
 	}

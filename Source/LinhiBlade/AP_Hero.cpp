@@ -51,31 +51,48 @@ void AAP_Hero::BeginPlay()
 	Super::BeginPlay();
 	AddStartupGameplayAbilities();
 }
-bool AAP_Hero::ActivateAbilitySlot(int32 AbilitySlot, bool bAllowRemoteActivation)
-{
-	UE_LOG(LogTemp, Warning, TEXT("about to activate ability %d, valid=%d"), AbilitySlot, GameplayAbilityHandles.IsValidIndex(AbilitySlot));
-	if (GameplayAbilityHandles.IsValidIndex(AbilitySlot) && AbilitySystem)
-	{
-		bool ret = AbilitySystem->TryActivateAbility(GameplayAbilityHandles[AbilitySlot], bAllowRemoteActivation);
-		UE_LOG(LogTemp, Warning, TEXT("activate ability, ret = %d"), ret);
-		return ret;
-	}
 
-	return false;
-}
 void AAP_Hero::AddStartupGameplayAbilities()
 {
 	if (Role == ROLE_Authority && !bAbilitiesInitialized)
 	{
-		GameplayAbilityHandles.Empty();
+		int32 Level = 1;
+		SpellAbilityHandles.Empty();
 		// Grant abilities, but only on the server	
-		for (TSubclassOf<UGameplayAbility>& StartupAbility : GameplayAbilities)
+		for (TSubclassOf<UGameplayAbility>& StartupAbility : SpellAbilities)
 		{
-			int32 level = 1;
-			FGameplayAbilitySpecHandle handle = AbilitySystem->GiveAbility(FGameplayAbilitySpec(StartupAbility, level, INDEX_NONE, this));
-			GameplayAbilityHandles.Add(handle);
+			if (StartupAbility)
+			{
+				FGameplayAbilitySpecHandle handle = AbilitySystem->GiveAbility(FGameplayAbilitySpec(StartupAbility, Level, INDEX_NONE, this));
+				SpellAbilityHandles.Add(handle);
+			}
 		}
+		if (WeaponAbility)
+		{
+			WeaponAbilityHandle = AbilitySystem->GiveAbility(FGameplayAbilitySpec(WeaponAbility, Level, INDEX_NONE, this));
+		}
+		
 		bAbilitiesInitialized = true;
+	}
+}
+void AAP_Hero::WeaponAttack()
+{
+	UE_LOG(LogTemp, Warning, TEXT("about to activate weapon attack"));
+	if (WeaponAbilityHandle.IsValid() && AbilitySystem)
+	{
+		// If bAllowRemoteActivation is true, it will remotely activate local / server abilities, if false it will only try to locally activate the ability
+		bool ret = AbilitySystem->TryActivateAbility(WeaponAbilityHandle, true);
+		UE_LOG(LogTemp, Warning, TEXT("activate ability, ret = %d"), ret);
+	}
+}
+void AAP_Hero::SpellAttack(int SpellSlot)
+{
+	UE_LOG(LogTemp, Warning, TEXT("about to activate ability %d, valid=%d"), SpellSlot, SpellAbilityHandles.IsValidIndex(SpellSlot));
+	if (SpellAbilityHandles.IsValidIndex(SpellSlot) && AbilitySystem)
+	{
+		// If bAllowRemoteActivation is true, it will remotely activate local / server abilities, if false it will only try to locally activate the ability
+		bool ret = AbilitySystem->TryActivateAbility(SpellAbilityHandles[SpellSlot], true);
+		UE_LOG(LogTemp, Warning, TEXT("activate ability, ret = %d"), ret);
 	}
 }
 ;

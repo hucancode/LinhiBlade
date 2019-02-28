@@ -57,17 +57,16 @@ public:
 	/** Returns the character level that is passed to the ability system */
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 		virtual int32 GetCharacterLevel() const;
-	/**
-	* Attempts to activate any ability in the specified item slot. Will return false if no activatable ability found or activation fails
-	* Returns true if it thinks it activated, but it may return false positives due to failure later in activation.
-	* If bAllowRemoteActivation is true, it will remotely activate local/server abilities, if false it will only try to locally activate the ability
-	*/
-	UFUNCTION(BlueprintCallable, Category = "Abilities")
-		bool ActivateAbilitySlot(int32 AbilitySlot, bool bAllowRemoteActivation = true);
 
 protected:
 	/** Apply the startup gameplay abilities and effects */
 	void AddStartupGameplayAbilities();
+	/** Apply the startup gameplay abilities and effects */
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+		void WeaponAttack();
+	/** Apply the startup gameplay abilities and effects */
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+		void SpellAttack(int SpellSlot);
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -140,11 +139,14 @@ protected:
 
 	/** Abilities to grant to this character on creation. These will be activated by tag or event and are not bound to specific inputs */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Abilities)
-		TArray<TSubclassOf<class UGameplayAbility>> GameplayAbilities;
-
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Abilities)
+		TArray<TSubclassOf<class UGameplayAbility>> SpellAbilities;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Abilities)
-		TArray<FGameplayAbilitySpecHandle> GameplayAbilityHandles;
+		TSubclassOf<class UGameplayAbility> WeaponAbility;
+
+	UPROPERTY()
+		TArray<FGameplayAbilitySpecHandle> SpellAbilityHandles;
+	UPROPERTY()
+		FGameplayAbilitySpecHandle WeaponAbilityHandle;
 
 	/** If true we have initialized our abilities */
 	UPROPERTY()
