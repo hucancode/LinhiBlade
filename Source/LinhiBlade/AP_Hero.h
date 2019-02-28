@@ -26,6 +26,10 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	/** select hero, activate selection effect */
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+		virtual void SelectHero(bool selected);
+
 	/** Modifies the character level, this may change abilities. Returns true on success */
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 		virtual bool SetCharacterLevel(int32 NewLevel);
@@ -117,17 +121,14 @@ protected:
 	friend UAP_AttributeSet;
 
 protected:
-	/** Camera boom positioning the camera behind the character */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		class USpringArmComponent* CameraBoom;
-
-	/** Follow camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		class UCameraComponent* FollowCamera;
 
 	/** Our ability system */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Abilities, meta = (AllowPrivateAccess = "true"))
 		class UAbilitySystemComponent* AbilitySystem;
+
+	/** Our ability system */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Abilities, meta = (AllowPrivateAccess = "true"))
+		class UStaticMeshComponent* SelectionRing;
 
 	/** List of attributes modified by the ability system */
 	UPROPERTY()
@@ -141,6 +142,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Abilities)
 		TArray<TSubclassOf<class UGameplayAbility>> GameplayAbilities;
 
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Abilities)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Abilities)
 		TArray<FGameplayAbilitySpecHandle> GameplayAbilityHandles;
 

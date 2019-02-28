@@ -2,6 +2,8 @@
 
 #include "AP_Hero.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -14,6 +16,13 @@ AAP_Hero::AAP_Hero()
 {
 	// Set size for player capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
+
+	SelectionRing = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SelectionRing"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("StaticMesh'/Engine/BasicShapes/Plane'"));
+	SelectionRing->SetStaticMesh(MeshAsset.Object);
+	SelectionRing->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	SelectionRing->SetCollisionProfileName(TEXT("NoCollision"));
+	SelectionRing->SetVisibility(false);
 
 	// Don't rotate character to camera direction
 	bUseControllerRotationPitch = false;
@@ -33,6 +42,7 @@ AAP_Hero::AAP_Hero()
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
 	AttributeSet = CreateDefaultSubobject<UAP_AttributeSet>(TEXT("AttributeSet"));
+	
 }
 
 // Called when the game starts or when spawned
@@ -143,6 +153,11 @@ void AAP_Hero::HandleMoveSpeedChanged(float DeltaValue, const struct FGameplayTa
 	{
 		OnMoveSpeedChanged(DeltaValue, EventTags);
 	}
+}
+
+void AAP_Hero::SelectHero(bool selected)
+{
+	SelectionRing->SetVisibility(selected);
 }
 
 float AAP_Hero::GetHealth() const
