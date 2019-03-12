@@ -16,6 +16,7 @@ class LINHIBLADE_API AAP_TargetActor_GroundPoint : public AGameplayAbilityTarget
 	GENERATED_BODY()
 public:
 	/** Initialize and begin targeting logic  */
+	virtual void BeginPlay() override;
 	virtual void StartTargeting(UGameplayAbility* Ability) override;
 	/** Outside code is saying 'stop and just give me what you have.' Returns true if the ability accepts this and can be forgotten. */
 	virtual void ConfirmTargetingAndContinue() override;

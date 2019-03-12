@@ -10,6 +10,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "AbilitySystemComponent.h"
+#include "Abilities/GameplayAbilityTargetActor.h"
 
 // Sets default values
 AAP_Hero::AAP_Hero()
@@ -95,7 +96,17 @@ void AAP_Hero::SpellAttack(int SpellSlot)
 		UE_LOG(LogTemp, Warning, TEXT("activate ability, ret = %d"), ret);
 	}
 }
-;
+
+float AAP_Hero::GetSpellCooldown(int SpellSlot)
+{
+	UE_LOG(LogTemp, Warning, TEXT("about to check ability cooldown %d, valid=%d"), SpellSlot, SpellAbilityHandles.IsValidIndex(SpellSlot));
+	if (SpellAbilityHandles.IsValidIndex(SpellSlot) && AbilitySystem)
+	{
+		return AbilitySystem->GetActivatableAbilities()[SpellSlot].Ability->GetCooldownTimeRemaining();
+	}
+	return 9999.0f;
+}
+
 // Called every frame
 void AAP_Hero::Tick(float DeltaTime)
 {
@@ -205,6 +216,21 @@ float AAP_Hero::GetMoveSpeed() const
 int32 AAP_Hero::GetCharacterLevel() const
 {
 	return CharacterLevel;
+}
+
+bool AAP_Hero::IsTargeting() const
+{
+	UE_LOG(LogTemp, Warning, TEXT("querying if hero is targeting or not"));
+	for (size_t i = 0; i < AbilitySystem->SpawnedTargetActors.Num(); i++)
+	{
+		if (!AbilitySystem->SpawnedTargetActors[i]->IsActorBeingDestroyed())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("return true at %d"), i);
+			return true;
+		}
+	}
+	UE_LOG(LogTemp, Warning, TEXT("return false"));
+	return false;
 }
 
 bool AAP_Hero::SetCharacterLevel(int32 NewLevel)

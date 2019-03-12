@@ -6,6 +6,7 @@
 void AAP_TargetActor_CapsuleAOE::BeginPlay()
 {
 	Super::BeginPlay();
+	bDestroyOnConfirmation = true;
 }
 void AAP_TargetActor_CapsuleAOE::StartTargeting(UGameplayAbility* Ability)
 {

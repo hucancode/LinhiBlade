@@ -7,6 +7,17 @@
 #include "Abilities/GameplayAbility.h"
 #include "DrawDebugHelpers.h"
 
+void AAP_TargetActor_GroundPoint::BeginPlay()
+{
+	Super::BeginPlay();
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.SetTickFunctionEnable(true);
+	PrimaryActorTick.TickGroup = TG_PostUpdateWork;
+	// workaround for an engine bug, turn the tick function off and on again
+	RegisterAllActorTickFunctions(false, false);
+	RegisterAllActorTickFunctions(true, false);
+	bDestroyOnConfirmation = true;
+}
 void AAP_TargetActor_GroundPoint::StartTargeting(UGameplayAbility* Ability)
 {
 	UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_GroundPoint::StartTargeting()"));

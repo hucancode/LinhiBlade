@@ -7,6 +7,7 @@
 void AAP_TargetActor_BoxAOE::BeginPlay()
 {
 	Super::BeginPlay();
+	bDestroyOnConfirmation = true;
 }
 void AAP_TargetActor_BoxAOE::StartTargeting(UGameplayAbility* Ability)
 {

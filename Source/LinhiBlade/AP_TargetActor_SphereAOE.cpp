@@ -6,6 +6,7 @@
 void AAP_TargetActor_SphereAOE::BeginPlay()
 {
 	Super::BeginPlay();
+	bDestroyOnConfirmation = true;
 }
 
 void AAP_TargetActor_SphereAOE::StartTargeting(UGameplayAbility* Ability)

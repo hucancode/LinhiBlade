@@ -16,6 +16,7 @@ void AAP_TargetActor_Hero::BeginPlay()
 	// workaround for an engine bug, turn the tick function off and on again
 	RegisterAllActorTickFunctions(false, false);
 	RegisterAllActorTickFunctions(true, false);
+	bDestroyOnConfirmation = true;
 }
 
 void AAP_TargetActor_Hero::StartTargeting(UGameplayAbility* Ability)

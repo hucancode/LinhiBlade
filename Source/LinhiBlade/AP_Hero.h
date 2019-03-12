@@ -58,6 +58,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 		virtual int32 GetCharacterLevel() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+		bool IsTargeting() const;
+
 protected:
 	/** Apply the startup gameplay abilities and effects */
 	void AddStartupGameplayAbilities();
@@ -67,6 +70,8 @@ protected:
 	/** Apply the startup gameplay abilities and effects */
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 		void SpellAttack(int SpellSlot);
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+		float GetSpellCooldown(int SpellSlot);
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
