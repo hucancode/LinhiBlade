@@ -93,6 +93,10 @@ void AAP_Hero::SpellAttack(int SpellSlot)
 	{
 		// If bAllowRemoteActivation is true, it will remotely activate local / server abilities, if false it will only try to locally activate the ability
 		bool ret = AbilitySystem->TryActivateAbility(SpellAbilityHandles[SpellSlot], true);
+		if (ret)
+		{
+			SpellCastDelegate.Broadcast(SpellSlot);
+		}
 		UE_LOG(LogTemp, Warning, TEXT("activate ability, ret = %d"), ret);
 	}
 }

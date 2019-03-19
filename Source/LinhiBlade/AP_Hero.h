@@ -9,6 +9,8 @@
 #include "GameplayAbility.h"
 #include "AP_Hero.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSpellCastDelegate, int, SpellSlot);
+
 UCLASS()
 class LINHIBLADE_API AAP_Hero : public ACharacter, public IAbilitySystemInterface
 {
@@ -124,6 +126,13 @@ protected:
 	// Friended to allow access to handle functions above
 	friend UAP_AttributeSet;
 
+	/**
+	 * Called when character cast a skill
+	 *
+	 * @param SpellSlot Which skill are being cast
+	 */
+	UPROPERTY(BlueprintAssignable)
+		FSpellCastDelegate SpellCastDelegate;
 protected:
 
 	/** Our ability system */
