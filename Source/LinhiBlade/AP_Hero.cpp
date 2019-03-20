@@ -104,11 +104,25 @@ void AAP_Hero::SpellAttack(int SpellSlot)
 float AAP_Hero::GetSpellCooldown(int SpellSlot)
 {
 	UE_LOG(LogTemp, Warning, TEXT("about to check ability cooldown %d, valid=%d"), SpellSlot, SpellAbilityHandles.IsValidIndex(SpellSlot));
+	float ret = 0.0f;
 	if (SpellAbilityHandles.IsValidIndex(SpellSlot) && AbilitySystem)
 	{
-		return AbilitySystem->GetActivatableAbilities()[SpellSlot].Ability->GetCooldownTimeRemaining();
+		UGameplayAbility* ability = AbilitySystem->GetActivatableAbilities()[SpellSlot].Ability;
+		// ret = ability->GetCooldownTimeRemaining();// this won't work
+		const FGameplayTagContainer* CooldownTags = ability->GetCooldownTags();
+		if (CooldownTags && CooldownTags->Num() > 0)
+		{
+			FGameplayEffectQuery const Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(*CooldownTags);
+			TArray< float > Durations = AbilitySystem->GetActiveEffectsTimeRemaining(Query);
+			if (Durations.Num() > 0)
+			{
+				Durations.Sort();
+				ret = Durations[Durations.Num() - 1];
+			}
+		}
 	}
-	return 9999.0f;
+	UE_LOG(LogTemp, Warning, TEXT("return %f"), ret);
+	return ret;
 }
 
 // Called every frame
