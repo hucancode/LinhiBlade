@@ -111,19 +111,16 @@ float AAP_Hero::GetSpellCooldown(int SpellSlot)
 	float ret = 0.0f;
 	if (valid && AbilitySystem)
 	{
-		UGameplayAbility* ability = AbilitySystem->GetActivatableAbilities()[SpellSlot].Ability;
-		// ret = ability->GetCooldownTimeRemaining();// this won't work
-		const FGameplayTagContainer* CooldownTags = ability->GetCooldownTags();
-		if (CooldownTags && CooldownTags->Num() > 0)
+		if (!AbilitySystem->GetActivatableAbilities().IsValidIndex(SpellSlot))
 		{
-			FGameplayEffectQuery const Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(*CooldownTags);
-			TArray< float > Durations = AbilitySystem->GetActiveEffectsTimeRemaining(Query);
-			if (Durations.Num() > 0)
-			{
-				Durations.Sort();
-				ret = Durations[Durations.Num() - 1];
-			}
+			return ret;
 		}
+		if (!AbilitySystem->GetActivatableAbilities()[SpellSlot].GetAbilityInstances().Num())
+		{
+			return ret;
+		}
+		UGameplayAbility* ability = AbilitySystem->GetActivatableAbilities()[SpellSlot].GetAbilityInstances().Last();
+		ret = ability->GetCooldownTimeRemaining();// this won't work
 	}
 	UE_LOG(LogTemp, Warning, TEXT("return %f"), ret);
 	return ret;
@@ -136,25 +133,24 @@ float AAP_Hero::GetSpellCooldownPercent(int SpellSlot)
 	float ret = 0.0f;
 	if (valid && AbilitySystem)
 	{
-		UGameplayAbility* ability = AbilitySystem->GetActivatableAbilities()[SpellSlot].Ability;
-		// ret = ability->GetCooldownTimeRemaining();// this won't work
-		const FGameplayTagContainer* CooldownTags = ability->GetCooldownTags();
-		if (CooldownTags && CooldownTags->Num() > 0)
+		if (!AbilitySystem->GetActivatableAbilities().IsValidIndex(SpellSlot))
 		{
-			FGameplayEffectQuery const Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(*CooldownTags);
-			TArray<TPair<float, float> > Durations = AbilitySystem->GetActiveEffectsTimeRemainingAndDuration(Query);
-			if (Durations.Num() > 0)
-			{
-				Durations.Sort();
-				TPair<float, float> item = Durations[Durations.Num() - 1];
-				float remaining = item.Get<0>();
-				float duration = item.Get<1>();
-				if (duration > 0.0f)
-				{
-					ret = remaining / duration;
-				}
-			}
+			return ret;
 		}
+		if (!AbilitySystem->GetActivatableAbilities()[SpellSlot].GetAbilityInstances().Num())
+		{
+			return ret;
+		}
+		UGameplayAbility* ability = AbilitySystem->GetActivatableAbilities()[SpellSlot].GetAbilityInstances().Last();
+		FGameplayAbilitySpecHandle handle = SpellAbilityHandles[SpellSlot];
+		float remaining;
+		float duration;
+		ability->GetCooldownTimeRemainingAndDuration(handle, ability->GetCurrentActorInfo(), remaining, duration);
+		if (duration == 0.0f)
+		{
+			return ret;
+		}
+		ret = ret = remaining / duration;
 	}
 	UE_LOG(LogTemp, Warning, TEXT("return %f"), ret);
 	return ret;
