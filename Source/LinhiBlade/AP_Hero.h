@@ -9,7 +9,16 @@
 #include "GameplayAbility.h"
 #include "AP_Hero.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSpellCastDelegate, int, SpellSlot);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSpellEventDelegate, int, SpellSlot);
+
+UENUM(BlueprintType)
+enum class ESpellState : uint8
+{
+	Ready 	UMETA(DisplayName = "Ready"),
+	Casting 	UMETA(DisplayName = "Casting"),
+	OnCooldown	UMETA(DisplayName = "OnCooldown"),
+	Disabled	UMETA(DisplayName = "Disabled")
+};
 
 UCLASS()
 class LINHIBLADE_API AAP_Hero : public ACharacter, public IAbilitySystemInterface
@@ -59,6 +68,9 @@ public:
 	/** Returns the character level that is passed to the ability system */
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 		virtual int32 GetCharacterLevel() const;
+	/** Returns the character level that is passed to the ability system */
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+		virtual int32 GetSpellCount() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 		bool IsTargeting() const;
@@ -74,6 +86,10 @@ protected:
 		void SpellAttack(int SpellSlot);
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 		float GetSpellCooldown(int SpellSlot);
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+		float GetSpellCooldownPercent(int SpellSlot);
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+		ESpellState GetSpellState(int SpellSlot);
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -132,7 +148,21 @@ protected:
 	 * @param SpellSlot Which skill are being cast
 	 */
 	UPROPERTY(BlueprintAssignable)
-		FSpellCastDelegate SpellCastDelegate;
+		FSpellEventDelegate SpellCastDelegate;
+	/**
+	 * Called when a spell gone cooldown
+	 *
+	 * @param SpellSlot Which skill are being cast
+	 */
+	UPROPERTY(BlueprintAssignable)
+		FSpellEventDelegate SpellGoneCooldown;
+	/**
+	 * Called when a spell off cooldown
+	 *
+	 * @param SpellSlot Which skill is just off cooldown
+	 */
+	UPROPERTY(BlueprintAssignable)
+		FSpellEventDelegate SpellOffCooldown;
 protected:
 
 	/** Our ability system */
@@ -142,6 +172,9 @@ protected:
 	/** Our ability system */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Abilities, meta = (AllowPrivateAccess = "true"))
 		class UStaticMeshComponent* SelectionRing;
+
+	UPROPERTY()
+		TArray <ESpellState> SpellStates;
 
 	/** List of attributes modified by the ability system */
 	UPROPERTY()

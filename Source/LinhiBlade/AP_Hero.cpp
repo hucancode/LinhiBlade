@@ -66,6 +66,7 @@ void AAP_Hero::AddStartupGameplayAbilities()
 			{
 				FGameplayAbilitySpecHandle handle = AbilitySystem->GiveAbility(FGameplayAbilitySpec(StartupAbility, Level, INDEX_NONE, this));
 				SpellAbilityHandles.Add(handle);
+				SpellStates.AddDefaulted();
 			}
 		}
 		if (WeaponAbility)
@@ -88,13 +89,15 @@ void AAP_Hero::WeaponAttack()
 }
 void AAP_Hero::SpellAttack(int SpellSlot)
 {
-	UE_LOG(LogTemp, Warning, TEXT("about to activate ability %d, valid=%d"), SpellSlot, SpellAbilityHandles.IsValidIndex(SpellSlot));
-	if (SpellAbilityHandles.IsValidIndex(SpellSlot) && AbilitySystem)
+	bool valid = SpellAbilityHandles.IsValidIndex(SpellSlot);
+	UE_LOG(LogTemp, Warning, TEXT("about to activate ability %d, valid=%d"), SpellSlot, valid);
+	if (valid && AbilitySystem)
 	{
 		// If bAllowRemoteActivation is true, it will remotely activate local / server abilities, if false it will only try to locally activate the ability
 		bool ret = AbilitySystem->TryActivateAbility(SpellAbilityHandles[SpellSlot], true);
 		if (ret)
 		{
+			SpellStates[SpellSlot] = ESpellState::Casting;
 			SpellCastDelegate.Broadcast(SpellSlot);
 		}
 		UE_LOG(LogTemp, Warning, TEXT("activate ability, ret = %d"), ret);
@@ -103,9 +106,10 @@ void AAP_Hero::SpellAttack(int SpellSlot)
 
 float AAP_Hero::GetSpellCooldown(int SpellSlot)
 {
-	UE_LOG(LogTemp, Warning, TEXT("about to check ability cooldown %d, valid=%d"), SpellSlot, SpellAbilityHandles.IsValidIndex(SpellSlot));
+	bool valid = SpellAbilityHandles.IsValidIndex(SpellSlot);
+	UE_LOG(LogTemp, Warning, TEXT("about to check ability cooldown %d, valid=%d"), SpellSlot, valid);
 	float ret = 0.0f;
-	if (SpellAbilityHandles.IsValidIndex(SpellSlot) && AbilitySystem)
+	if (valid && AbilitySystem)
 	{
 		UGameplayAbility* ability = AbilitySystem->GetActivatableAbilities()[SpellSlot].Ability;
 		// ret = ability->GetCooldownTimeRemaining();// this won't work
@@ -125,10 +129,80 @@ float AAP_Hero::GetSpellCooldown(int SpellSlot)
 	return ret;
 }
 
+float AAP_Hero::GetSpellCooldownPercent(int SpellSlot)
+{
+	bool valid = SpellAbilityHandles.IsValidIndex(SpellSlot);
+	UE_LOG(LogTemp, Warning, TEXT("about to check ability cooldown percent %d, valid=%d"), SpellSlot, valid);
+	float ret = 0.0f;
+	if (valid && AbilitySystem)
+	{
+		UGameplayAbility* ability = AbilitySystem->GetActivatableAbilities()[SpellSlot].Ability;
+		// ret = ability->GetCooldownTimeRemaining();// this won't work
+		const FGameplayTagContainer* CooldownTags = ability->GetCooldownTags();
+		if (CooldownTags && CooldownTags->Num() > 0)
+		{
+			FGameplayEffectQuery const Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(*CooldownTags);
+			TArray<TPair<float, float> > Durations = AbilitySystem->GetActiveEffectsTimeRemainingAndDuration(Query);
+			if (Durations.Num() > 0)
+			{
+				Durations.Sort();
+				TPair<float, float> item = Durations[Durations.Num() - 1];
+				float remaining = item.Get<0>();
+				float duration = item.Get<1>();
+				if (duration > 0.0f)
+				{
+					ret = remaining / duration;
+				}
+			}
+		}
+	}
+	UE_LOG(LogTemp, Warning, TEXT("return %f"), ret);
+	return ret;
+}
+
+ESpellState AAP_Hero::GetSpellState(int SpellSlot)
+{
+	if (!SpellStates.IsValidIndex(SpellSlot))
+	{
+		return ESpellState::Disabled;
+	}
+	return SpellStates[SpellSlot];
+}
+
 // Called every frame
 void AAP_Hero::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	for (size_t i = 0; i < SpellStates.Num(); i++)
+	{
+		if (!AbilitySystem->GetActivatableAbilities().IsValidIndex(i))
+		{
+			continue;
+		}
+		if (!AbilitySystem->GetActivatableAbilities()[i].GetAbilityInstances().Num())
+		{
+			continue;
+		}
+		UGameplayAbility* ability = AbilitySystem->GetActivatableAbilities()[i].GetAbilityInstances().Last();
+		FGameplayAbilitySpecHandle handle = SpellAbilityHandles[i];
+		
+		if (SpellStates[i] == ESpellState::Casting)
+		{
+			if (!ability->CheckCooldown(handle, ability->GetCurrentActorInfo()))
+			{
+				SpellStates[i] = ESpellState::OnCooldown;
+				SpellGoneCooldown.Broadcast(i);
+			}
+		}
+		else if (SpellStates[i] == ESpellState::OnCooldown)
+		{
+			if (ability->CheckCooldown(handle, ability->GetCurrentActorInfo()))
+			{
+				SpellStates[i] = ESpellState::Ready;
+				SpellOffCooldown.Broadcast(i);
+			}
+		}
+	}
 
 }
 
@@ -234,6 +308,11 @@ float AAP_Hero::GetMoveSpeed() const
 int32 AAP_Hero::GetCharacterLevel() const
 {
 	return CharacterLevel;
+}
+
+int32 AAP_Hero::GetSpellCount() const
+{
+	return SpellAbilityHandles.Num();
 }
 
 bool AAP_Hero::IsTargeting() const
