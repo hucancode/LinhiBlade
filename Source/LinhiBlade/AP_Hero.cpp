@@ -120,7 +120,7 @@ float AAP_Hero::GetSpellCooldown(int SpellSlot)
 			return ret;
 		}
 		UGameplayAbility* ability = AbilitySystem->GetActivatableAbilities()[SpellSlot].GetAbilityInstances().Last();
-		ret = ability->GetCooldownTimeRemaining();// this won't work
+		ret = ability->GetCooldownTimeRemaining();
 	}
 	UE_LOG(LogTemp, Warning, TEXT("return %f"), ret);
 	return ret;
