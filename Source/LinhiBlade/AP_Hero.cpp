@@ -38,6 +38,7 @@ AAP_Hero::AAP_Hero()
 
 	// Our ability system component.
 	AbilitySystem = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystem"));
+	AbilitySystem->OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &AAP_Hero::OnGameplayEffectAppliedToSelf);
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
@@ -51,6 +52,7 @@ void AAP_Hero::BeginPlay()
 {
 	Super::BeginPlay();
 	AddStartupGameplayAbilities();
+	
 }
 
 void AAP_Hero::AddStartupGameplayAbilities()
@@ -236,6 +238,16 @@ void AAP_Hero::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetime
 UAbilitySystemComponent * AAP_Hero::GetAbilitySystemComponent() const
 {
 	return AbilitySystem;
+}
+
+void AAP_Hero::OnGameplayEffectAppliedToSelf(UAbilitySystemComponent * Source, const FGameplayEffectSpec & Spec, FActiveGameplayEffectHandle Handle)
+{
+	// add visual display for gameplay effect
+	// if a invisible effect is applied, make character transparent
+	// if a stun effect is applied, make character play stun animation
+	// if an ice effect is applied, make character blue
+	// ...
+	GameplayEffectAppliedToSelf.Broadcast(Source, Spec, Handle);
 }
 
 void AAP_Hero::HandleDamage(float DamageAmount, const FHitResult& HitInfo, const struct FGameplayTagContainer& DamageTags, AAP_Hero* InstigatorPawn, AActor* DamageCauser)

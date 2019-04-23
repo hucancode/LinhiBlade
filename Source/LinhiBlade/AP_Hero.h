@@ -9,8 +9,6 @@
 #include "GameplayAbility.h"
 #include "AP_Hero.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSpellEventDelegate, int, SpellSlot);
-
 UENUM(BlueprintType)
 enum class ESpellState : uint8
 {
@@ -24,6 +22,9 @@ UCLASS()
 class LINHIBLADE_API AAP_Hero : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSpellEventDelegate, int, SpellSlot);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnGameplayEffectAppliedDelegate, UAbilitySystemComponent*, Source , const FGameplayEffectSpec&, Spec, FActiveGameplayEffectHandle, Handle);
 
 public:
 	// Sets default values for this character's properties
@@ -68,12 +69,15 @@ public:
 	/** Returns the character level that is passed to the ability system */
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 		virtual int32 GetCharacterLevel() const;
+
 	/** Returns the character level that is passed to the ability system */
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 		virtual int32 GetSpellCount() const;
 
+	/** Returns if the character is targeting */
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 		bool IsTargeting() const;
+
 
 protected:
 	/** Apply the startup gameplay abilities and effects */
@@ -133,6 +137,11 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnMoveSpeedChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags);
 
+
+	/** Called when */
+	UFUNCTION(Category = "Abilities")
+		void OnGameplayEffectAppliedToSelf(UAbilitySystemComponent* Source, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
+
 	// Called from RPGAttributeSet, these call BP events above
 	virtual void HandleDamage(float DamageAmount, const FHitResult& HitInfo, const struct FGameplayTagContainer& DamageTags, AAP_Hero* InstigatorCharacter, AActor* DamageCauser);
 	virtual void HandleHealthChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags);
@@ -163,6 +172,15 @@ protected:
 	 */
 	UPROPERTY(BlueprintAssignable)
 		FSpellEventDelegate SpellOffCooldown;
+
+	/**
+	 * Called when a gamplay effect applied to self
+	 *
+	 * @param GameplayEffectSpec Which effect are being applied
+	 * @param Handle The handle for the effect itself
+	 */
+	UPROPERTY(BlueprintAssignable)
+		FOnGameplayEffectAppliedDelegate GameplayEffectAppliedToSelf;
 protected:
 
 	/** Our ability system */
