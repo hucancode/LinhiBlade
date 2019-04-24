@@ -11,6 +11,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbilityTargetActor.h"
+#include "AbilitySystemBlueprintLibrary.h"
 
 // Sets default values
 AAP_Hero::AAP_Hero()
@@ -52,7 +53,7 @@ void AAP_Hero::BeginPlay()
 {
 	Super::BeginPlay();
 	AddStartupGameplayAbilities();
-	
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag("Event.TriggerPassiveEffect"), FGameplayEventData());
 }
 
 void AAP_Hero::AddStartupGameplayAbilities()
@@ -69,16 +70,17 @@ void AAP_Hero::AddStartupGameplayAbilities()
 				FGameplayAbilitySpecHandle handle = AbilitySystem->GiveAbility(FGameplayAbilitySpec(StartupAbility, Level, INDEX_NONE, this));
 				SpellAbilityHandles.Add(handle);
 				SpellStates.AddDefaulted();
+				
 			}
 		}
 		if (WeaponAbility)
 		{
 			WeaponAbilityHandle = AbilitySystem->GiveAbility(FGameplayAbilitySpec(WeaponAbility, Level, INDEX_NONE, this));
 		}
-		
 		bAbilitiesInitialized = true;
 	}
 }
+
 void AAP_Hero::WeaponAttack()
 {
 	UE_LOG(LogTemp, Warning, TEXT("about to activate weapon attack"));
@@ -89,6 +91,7 @@ void AAP_Hero::WeaponAttack()
 		UE_LOG(LogTemp, Warning, TEXT("activate ability, ret = %d"), ret);
 	}
 }
+
 void AAP_Hero::SpellAttack(int SpellSlot)
 {
 	bool valid = SpellAbilityHandles.IsValidIndex(SpellSlot);
