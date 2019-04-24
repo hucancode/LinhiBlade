@@ -328,16 +328,16 @@ int32 AAP_Hero::GetSpellCount() const
 
 bool AAP_Hero::IsTargeting() const
 {
-	UE_LOG(LogTemp, Warning, TEXT("querying if hero is targeting or not"));
-	for (size_t i = 0; i < AbilitySystem->SpawnedTargetActors.Num(); i++)
+	for (AGameplayAbilityTargetActor* Actor : AbilitySystem->SpawnedTargetActors)
 	{
-		if (!AbilitySystem->SpawnedTargetActors[i]->IsActorBeingDestroyed())
+		if (!Actor->IsActorBeingDestroyed())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("return true at %d"), i);
-			return true;
+			if (Actor->IsConfirmTargetingAllowed())
+			{
+				return true;
+			}
 		}
 	}
-	UE_LOG(LogTemp, Warning, TEXT("return false"));
 	return false;
 }
 
