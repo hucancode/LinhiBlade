@@ -138,9 +138,36 @@ protected:
 		void OnMoveSpeedChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags);
 
 
-	/** Called when */
+	/** Called when a game effect applied to self
+	 *
+	 * @param Source who are giving the effect
+	 * @param Spec effect information
+	 * @param Handle which effect are being applied
+	 */
 	UFUNCTION(Category = "Abilities")
 		void OnGameplayEffectAppliedToSelf(UAbilitySystemComponent* Source, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
+
+	/** Called when an ability is activated
+	 *
+	 * @param Ability which ability are being activated
+	 */
+	UFUNCTION(Category = "Abilities")
+		void OnAbilityActivated(UGameplayAbility* Ability);
+
+	/** Called when an ability is committed
+	 *
+	 * @param Ability which ability are being committed
+	 */
+	UFUNCTION(Category = "Abilities")
+		void OnAbilityCommitted(UGameplayAbility* Ability);
+	
+	/** Called when an ability is ended
+	 *
+	 * @param Ability which ability are being ended
+	 */
+	UFUNCTION(Category = "Abilities")
+		void OnAbilityEnded(UGameplayAbility* Ability);
+	
 
 	// Called from RPGAttributeSet, these call BP events above
 	virtual void HandleDamage(float DamageAmount, const FHitResult& HitInfo, const struct FGameplayTagContainer& DamageTags, AAP_Hero* InstigatorCharacter, AActor* DamageCauser);

@@ -79,6 +79,9 @@ void AAP_Hero::AddStartupGameplayAbilities()
 		}
 		bAbilitiesInitialized = true;
 	}
+	AbilitySystem->AbilityCommittedCallbacks.AddUObject(this, &AAP_Hero::OnAbilityCommitted);
+	AbilitySystem->AbilityEndedCallbacks.AddUObject(this, &AAP_Hero::OnAbilityEnded);
+	AbilitySystem->AbilityActivatedCallbacks.AddUObject(this, &AAP_Hero::OnAbilityActivated);
 }
 
 void AAP_Hero::WeaponAttack()
@@ -133,19 +136,14 @@ float AAP_Hero::GetSpellCooldown(int SpellSlot)
 
 float AAP_Hero::GetSpellCooldownPercent(int SpellSlot)
 {
-	bool valid = SpellAbilityHandles.IsValidIndex(SpellSlot);
+	bool valid = SpellAbilityHandles.IsValidIndex(SpellSlot)
+		&& AbilitySystem->GetActivatableAbilities().IsValidIndex(SpellSlot)
+		&& AbilitySystem->GetActivatableAbilities()[SpellSlot].GetAbilityInstances().Num();
+	
 	UE_LOG(LogTemp, Warning, TEXT("about to check ability cooldown percent %d, valid=%d"), SpellSlot, valid);
 	float ret = 0.0f;
 	if (valid && AbilitySystem)
 	{
-		if (!AbilitySystem->GetActivatableAbilities().IsValidIndex(SpellSlot))
-		{
-			return ret;
-		}
-		if (!AbilitySystem->GetActivatableAbilities()[SpellSlot].GetAbilityInstances().Num())
-		{
-			return ret;
-		}
 		UGameplayAbility* ability = AbilitySystem->GetActivatableAbilities()[SpellSlot].GetAbilityInstances().Last();
 		FGameplayAbilitySpecHandle handle = SpellAbilityHandles[SpellSlot];
 		float remaining;
@@ -153,9 +151,10 @@ float AAP_Hero::GetSpellCooldownPercent(int SpellSlot)
 		ability->GetCooldownTimeRemainingAndDuration(handle, ability->GetCurrentActorInfo(), remaining, duration);
 		if (duration == 0.0f)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("duration = 0, return %f"), ret);
 			return ret;
 		}
-		ret = ret = remaining / duration;
+		ret = remaining / duration;
 	}
 	UE_LOG(LogTemp, Warning, TEXT("return %f"), ret);
 	return ret;
@@ -174,19 +173,24 @@ ESpellState AAP_Hero::GetSpellState(int SpellSlot)
 void AAP_Hero::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	FGameplayAbilitySpecHandle handle;
+	UGameplayAbility* ability;
+	TArray<FGameplayAbilitySpec> AllAbilities = AbilitySystem->GetActivatableAbilities();
+	TArray<UGameplayAbility*> instances;
 	for (size_t i = 0; i < SpellStates.Num(); i++)
 	{
-		if (!AbilitySystem->GetActivatableAbilities().IsValidIndex(i))
+		if (!AllAbilities.IsValidIndex(i))
 		{
 			continue;
 		}
-		if (!AbilitySystem->GetActivatableAbilities()[i].GetAbilityInstances().Num())
-		{
-			continue;
-		}
-		UGameplayAbility* ability = AbilitySystem->GetActivatableAbilities()[i].GetAbilityInstances().Last();
-		FGameplayAbilitySpecHandle handle = SpellAbilityHandles[i];
+		instances = AllAbilities[i].GetAbilityInstances();
 		
+		if (!instances.Num())
+		{
+			continue;
+		}
+		ability = instances.Last();
+		handle = SpellAbilityHandles[i];
 		if (SpellStates[i] == ESpellState::Casting)
 		{
 			if (!ability->CheckCooldown(handle, ability->GetCurrentActorInfo()))
@@ -251,6 +255,56 @@ void AAP_Hero::OnGameplayEffectAppliedToSelf(UAbilitySystemComponent * Source, c
 	// if an ice effect is applied, make character blue
 	// ...
 	GameplayEffectAppliedToSelf.Broadcast(Source, Spec, Handle);
+}
+
+void AAP_Hero::OnAbilityActivated(UGameplayAbility * Ability)
+{
+	UE_LOG(LogTemp, Warning, TEXT("AAP_Hero::OnAbilityActivated %s"), *Ability->GetFName().ToString());
+	FGameplayAbilitySpecHandle Handle = Ability->GetCurrentAbilitySpecHandle();
+	int Index = SpellAbilityHandles.Find(Handle);
+	if (Index == INDEX_NONE)
+	{
+		return;
+	}
+	SpellStates[Index] = ESpellState::Casting;
+	SpellCastDelegate.Broadcast(Index);
+}
+
+void AAP_Hero::OnAbilityCommitted(UGameplayAbility* Ability)
+{
+	UE_LOG(LogTemp, Warning, TEXT("AAP_Hero::OnAbilityCommitted %s"), *Ability->GetFName().ToString());
+	FGameplayAbilitySpecHandle Handle = Ability->GetCurrentAbilitySpecHandle();
+	int Index = SpellAbilityHandles.Find(Handle);
+	if (Index == INDEX_NONE)
+	{
+		return;
+	}
+	if (!Ability->CheckCooldown(Handle, Ability->GetCurrentActorInfo()))
+	{
+		SpellStates[Index] = ESpellState::OnCooldown;
+		SpellGoneCooldown.Broadcast(Index);
+	}
+}
+
+void AAP_Hero::OnAbilityEnded(UGameplayAbility* Ability)
+{
+	UE_LOG(LogTemp, Warning, TEXT("AAP_Hero::OnAbilityEnded %s"), *Ability->GetFName().ToString());
+	FGameplayAbilitySpecHandle Handle = Ability->GetCurrentAbilitySpecHandle();
+	int Index = SpellAbilityHandles.Find(Handle);
+	if (Index == INDEX_NONE)
+	{
+		return;
+	}
+	if (!Ability->CheckCooldown(Handle, Ability->GetCurrentActorInfo()))
+	{
+		SpellStates[Index] = ESpellState::OnCooldown;
+		SpellGoneCooldown.Broadcast(Index);
+	}
+	else
+	{
+		SpellStates[Index] = ESpellState::Ready;
+		SpellOffCooldown.Broadcast(Index);
+	}
 }
 
 void AAP_Hero::HandleDamage(float DamageAmount, const FHitResult& HitInfo, const struct FGameplayTagContainer& DamageTags, AAP_Hero* InstigatorPawn, AActor* DamageCauser)
