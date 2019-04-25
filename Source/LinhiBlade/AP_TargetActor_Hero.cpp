@@ -73,7 +73,7 @@ FHitResult AAP_TargetActor_Hero::PerformTrace()
 	GetWorld()->GetFirstPlayerController()->DeprojectMousePositionToWorld(MouseLoc, MouseRot);;
 	const FVector StartTrace = MouseLoc;
 	const FVector ShootDir = MouseRot;
-	const FVector EndTrace = StartTrace + ShootDir * 2000.0f;
+	const FVector EndTrace = StartTrace + ShootDir * 20000.0f;
 	
 	ECollisionChannel Channel(ECollisionChannel::ECC_GameTraceChannel2);
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(HeroTargetingOverlap), false);

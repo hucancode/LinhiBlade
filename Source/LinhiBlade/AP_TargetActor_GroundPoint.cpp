@@ -60,7 +60,7 @@ FHitResult AAP_TargetActor_GroundPoint::PerformTrace()
 	GetWorld()->GetFirstPlayerController()->DeprojectMousePositionToWorld(MouseLoc, MouseRot);;
 	const FVector StartTrace = MouseLoc;
 	const FVector ShootDir = MouseRot;
-	const FVector EndTrace = StartTrace + ShootDir * 2000.0f;
+	const FVector EndTrace = StartTrace + ShootDir * 20000.0f;
 	//UE_LOG(LogTemp, Warning, TEXT("AAP_TargetActor_GroundPoint::PerformTrace() LineTraceSingleByChannel"));
 	GetWorld()->LineTraceSingleByChannel(HitResult,
 		StartTrace, EndTrace, ECollisionChannel::ECC_Visibility);// not sure if ECC_Visibility or ECC_WorldStatic
