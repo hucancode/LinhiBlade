@@ -3,6 +3,7 @@
 #pragma once
 #include "AP_AttributeSet.h"
 #include "CoreMinimal.h"
+#include "Delegates/IDelegateInstance.h"
 #include "GameplayTags/Classes/GameplayTagContainer.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
@@ -167,6 +168,13 @@ protected:
 	 */
 	UFUNCTION(Category = "Abilities")
 		void OnAbilityEnded(UGameplayAbility* Ability);
+
+	/** Called when an ability off cooldown
+	 *
+	 * @param InGameplayEffectRemovalInfo detail about the event
+	 */
+	UFUNCTION(Category = "Abilities")
+		void OnAbilityOffCooldown(const FGameplayEffectRemovalInfo& InGameplayEffectRemovalInfo);
 	
 
 	// Called from RPGAttributeSet, these call BP events above
@@ -239,6 +247,9 @@ protected:
 		TArray<FGameplayAbilitySpecHandle> SpellAbilityHandles;
 	UPROPERTY()
 		FGameplayAbilitySpecHandle WeaponAbilityHandle;
+
+	TArray<FDelegateHandle> CooldownObservers;
+	TArray<FActiveGameplayEffectHandle> CooldownEffects;
 
 	/** If true we have initialized our abilities */
 	UPROPERTY()

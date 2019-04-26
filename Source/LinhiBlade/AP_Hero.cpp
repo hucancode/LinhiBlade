@@ -70,7 +70,10 @@ void AAP_Hero::AddStartupGameplayAbilities()
 				FGameplayAbilitySpecHandle handle = AbilitySystem->GiveAbility(FGameplayAbilitySpec(StartupAbility, Level, INDEX_NONE, this));
 				SpellAbilityHandles.Add(handle);
 				SpellStates.AddDefaulted();
-				
+				CooldownObservers.AddDefaulted();
+				CooldownObservers.Last().Reset();
+				CooldownEffects.AddDefaulted();
+				CooldownEffects.Last().Invalidate();
 			}
 		}
 		if (WeaponAbility)
@@ -173,48 +176,13 @@ ESpellState AAP_Hero::GetSpellState(int SpellSlot)
 void AAP_Hero::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	FGameplayAbilitySpecHandle handle;
-	UGameplayAbility* ability;
-	TArray<FGameplayAbilitySpec> AllAbilities = AbilitySystem->GetActivatableAbilities();
-	TArray<UGameplayAbility*> instances;
-	for (size_t i = 0; i < SpellStates.Num(); i++)
-	{
-		if (!AllAbilities.IsValidIndex(i))
-		{
-			continue;
-		}
-		instances = AllAbilities[i].GetAbilityInstances();
-		
-		if (!instances.Num())
-		{
-			continue;
-		}
-		ability = instances.Last();
-		handle = SpellAbilityHandles[i];
-		if (SpellStates[i] == ESpellState::Casting)
-		{
-			if (!ability->CheckCooldown(handle, ability->GetCurrentActorInfo()))
-			{
-				SpellStates[i] = ESpellState::OnCooldown;
-				SpellGoneCooldown.Broadcast(i);
-			}
-		}
-		else if (SpellStates[i] == ESpellState::OnCooldown)
-		{
-			if (ability->CheckCooldown(handle, ability->GetCurrentActorInfo()))
-			{
-				SpellStates[i] = ESpellState::Ready;
-				SpellOffCooldown.Broadcast(i);
-			}
-		}
-	}
-
 }
 
 // Called to bind functionality to input
 void AAP_Hero::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	//AbilitySystem->BindToInputComponent(PlayerInputComponent);// we will do this manually in blueprint
 }
 
 void AAP_Hero::PossessedBy(AController * NewController)
@@ -283,6 +251,28 @@ void AAP_Hero::OnAbilityCommitted(UGameplayAbility* Ability)
 	{
 		SpellStates[Index] = ESpellState::OnCooldown;
 		SpellGoneCooldown.Broadcast(Index);
+		FGameplayEffectQuery query;
+		query.EffectDefinition = Ability->GetCooldownGameplayEffect()->GetClass();
+		TArray<FActiveGameplayEffectHandle> Handles = AbilitySystem->GetActiveEffects(query);
+		UE_LOG(LogTemp, Warning, TEXT("setting up delegate..."));
+		if (Handles.Num())
+		{
+			CooldownEffects[Index] = Handles.Last();
+			FOnActiveGameplayEffectRemoved_Info* Delegate = AbilitySystem->OnGameplayEffectRemoved_InfoDelegate(CooldownEffects[Index]);
+			if (Delegate)
+			{
+				CooldownObservers[Index] = Delegate->AddUObject(this, &AAP_Hero::OnAbilityOffCooldown);
+				UE_LOG(LogTemp, Warning, TEXT("delegate setup successful"));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("can't find delegate, setup unsuccessful"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("can't find cooldown effect, setup unsuccessful"));
+		}
 	}
 }
 
@@ -304,6 +294,50 @@ void AAP_Hero::OnAbilityEnded(UGameplayAbility* Ability)
 	{
 		SpellStates[Index] = ESpellState::Ready;
 		SpellOffCooldown.Broadcast(Index);
+	}
+}
+
+void AAP_Hero::OnAbilityOffCooldown(const FGameplayEffectRemovalInfo& InGameplayEffectRemovalInfo)
+{
+	UE_LOG(LogTemp, Warning, TEXT("AAP_Hero::OnAbilityOffCooldown"));
+	// this is not the actual ability we are concerning, just a default ability instance
+	const UGameplayAbility* AbilityInfo = InGameplayEffectRemovalInfo.EffectContext.GetAbility();
+	int Index = SpellAbilities.Find(AbilityInfo->GetClass());
+	if (Index == INDEX_NONE)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("an ability just gone off cooldown, but it seems doesn't belong to this actor %s/%s"), *GetFName().ToString(), *AbilityInfo->GetFName().ToString());
+		return;
+	}
+	FGameplayAbilitySpecHandle Handle = SpellAbilityHandles[Index];
+	TArray<UGameplayAbility*> Instances = AbilitySystem->FindAbilitySpecFromHandle(Handle)->GetAbilityInstances();
+	if (Instances.Num())
+	{
+		UGameplayAbility* Ability = Instances.Last();
+		if (!Ability->CheckCooldown(Handle, Ability->GetCurrentActorInfo()))
+		{
+			SpellStates[Index] = ESpellState::Ready;
+			SpellOffCooldown.Broadcast(Index);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("an ability just gone off cooldown, but can't find it's instance, weird but ok %s"), *AbilityInfo->GetFName().ToString());
+		SpellStates[Index] = ESpellState::Ready;
+		SpellOffCooldown.Broadcast(Index);
+	}
+	if (CooldownObservers[Index].IsValid())
+	{
+		FOnActiveGameplayEffectRemoved_Info* Delegate = AbilitySystem->OnGameplayEffectRemoved_InfoDelegate(CooldownEffects[Index]);
+		if (Delegate)
+		{
+			Delegate->Remove(CooldownObservers[Index]);
+		}
+		CooldownObservers[Index].Reset();
+		CooldownEffects[Index].Invalidate();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("an ability just gone off cooldown, but it didn't seem on cooldown %s"), *AbilityInfo->GetFName().ToString());
 	}
 }
 
