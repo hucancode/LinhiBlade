@@ -40,6 +40,7 @@ AAP_Hero::AAP_Hero()
 	// Our ability system component.
 	AbilitySystem = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystem"));
 	AbilitySystem->OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &AAP_Hero::OnGameplayEffectAppliedToSelf);
+	
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
@@ -223,6 +224,14 @@ void AAP_Hero::OnGameplayEffectAppliedToSelf(UAbilitySystemComponent * Source, c
 	// if an ice effect is applied, make character blue
 	// ...
 	GameplayEffectAppliedToSelf.Broadcast(Source, Spec, Handle);
+	AbilitySystem->OnGameplayEffectRemoved_InfoDelegate(Handle)->AddUObject(this, &AAP_Hero::OnGameplayEffectRemovedFromSelf);
+}
+
+void AAP_Hero::OnGameplayEffectRemovedFromSelf(const FGameplayEffectRemovalInfo & Info)
+{
+	// remove visual display for gameplay effect
+	
+	GameplayEffectRemovedFromSelf.Broadcast(Info);
 }
 
 void AAP_Hero::OnAbilityActivated(UGameplayAbility * Ability)

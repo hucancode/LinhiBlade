@@ -25,7 +25,8 @@ class LINHIBLADE_API AAP_Hero : public ACharacter, public IAbilitySystemInterfac
 	GENERATED_BODY()
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSpellEventDelegate, int, SpellSlot);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnGameplayEffectAppliedDelegate, UAbilitySystemComponent*, Source , const FGameplayEffectSpec&, Spec, FActiveGameplayEffectHandle, Handle);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnGameplayEffectAppliedDelegate, UAbilitySystemComponent*, Source, const FGameplayEffectSpec&, Spec, FActiveGameplayEffectHandle, Handle);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGameplayEffectRemovedDelegate, const FGameplayEffectRemovalInfo&, Info);
 
 public:
 	// Sets default values for this character's properties
@@ -148,6 +149,16 @@ protected:
 	UFUNCTION(Category = "Abilities")
 		void OnGameplayEffectAppliedToSelf(UAbilitySystemComponent* Source, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
 
+	/** Called when a game effect applied to self
+	 *
+	 * @param Source who are giving the effect
+	 * @param Spec effect information
+	 * @param Handle which effect are being applied
+	 */
+	UFUNCTION(Category = "Abilities")
+		void OnGameplayEffectRemovedFromSelf(const FGameplayEffectRemovalInfo& Info);
+
+
 	/** Called when an ability is activated
 	 *
 	 * @param Ability which ability are being activated
@@ -216,6 +227,8 @@ protected:
 	 */
 	UPROPERTY(BlueprintAssignable)
 		FOnGameplayEffectAppliedDelegate GameplayEffectAppliedToSelf;
+	UPROPERTY(BlueprintAssignable)
+		FOnGameplayEffectRemovedDelegate GameplayEffectRemovedFromSelf;
 protected:
 
 	/** Our ability system */
