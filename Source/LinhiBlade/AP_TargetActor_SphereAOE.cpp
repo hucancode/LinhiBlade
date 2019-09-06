@@ -30,7 +30,7 @@ TArray<TWeakObjectPtr<AActor>> AAP_TargetActor_SphereAOE::PerformTrace()
 	FCollisionObjectQueryParams ObjectToScan = FCollisionObjectQueryParams(ECC_GameTraceChannel1);
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(SphereTargetingOverlap), false);
 	Params.bReturnPhysicalMaterial = false;
-	Params.bTraceAsyncScene = false;
+	//Params.bTraceAsyncScene = false;
 	TArray<FOverlapResult> Overlaps;
 	TArray<TWeakObjectPtr<AActor>>	HitActors;
 	FCollisionShape Shape = FCollisionShape::MakeSphere(Radius);

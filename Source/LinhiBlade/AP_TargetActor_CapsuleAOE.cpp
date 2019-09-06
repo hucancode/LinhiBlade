@@ -28,7 +28,7 @@ TArray<TWeakObjectPtr<AActor>> AAP_TargetActor_CapsuleAOE::PerformTrace()
 	FCollisionObjectQueryParams ObjectToScan = FCollisionObjectQueryParams(ECC_GameTraceChannel1);
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(CapsuleTargetingOverlap), false);
 	Params.bReturnPhysicalMaterial = false;
-	Params.bTraceAsyncScene = false;
+	//Params.bTraceAsyncScene = false;
 	TArray<FOverlapResult> Overlaps;
 	TArray<TWeakObjectPtr<AActor>>	HitActors;
 	const float HalfHeight = 300.0f;

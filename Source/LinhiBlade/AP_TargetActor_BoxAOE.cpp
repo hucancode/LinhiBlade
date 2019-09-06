@@ -30,7 +30,7 @@ TArray<TWeakObjectPtr<AActor>> AAP_TargetActor_BoxAOE::PerformTrace()
 	FCollisionObjectQueryParams ObjectToScan = FCollisionObjectQueryParams(ECC_GameTraceChannel1);
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(BoxTargetingOverlap), false);
 	Params.bReturnPhysicalMaterial = false;
-	Params.bTraceAsyncScene = false;
+	//Params.bTraceAsyncScene = false;
 	FRotator Rotation = UKismetMathLibrary::FindLookAtRotation(
 		StartLocation.GetTargetingTransform().GetTranslation(), 
 		Location);
